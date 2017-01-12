@@ -24,6 +24,7 @@ setup(
     author_email='idan@gigaspaces.com',
     packages=[
         'openstack_plugin_common',
+        'cloudify_secrets',
         'nova_plugin',
         'neutron_plugin',
         'cinder_plugin',
