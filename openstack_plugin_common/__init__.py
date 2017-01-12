@@ -34,6 +34,8 @@ import glanceclient.exc as glance_exceptions
 import cloudify
 from cloudify import context
 from cloudify.exceptions import NonRecoverableError, RecoverableError
+from cloudify_secrets.cloudifysecrets import \
+    CloudifySecrets
 
 INFINITE_RESOURCE_QUOTA = -1
 
@@ -431,12 +433,20 @@ class OpenStackClient(object):
     ]
     OPTIONAL_AUTH_PARAMS = {'insecure'}
 
-    def __init__(self, client_name, client_class, config=None, *args, **kw):
+    def __init__(self, client_name, client_class, config=None, secure_client_config=None, *args, **kw):
+        self.secrets = \
+            secure_client_config or CloudifySecrets()
         cfg = Config.get()
         v3 = '/v3' in config['auth_url']
 
         if config:
             Config.update_config(cfg, config)
+
+        if self.secrets.use:
+            cfg = \
+                self.secrets.update_config_with_secrets(
+                    config=cfg,
+                    config_schema_name='openstack_config')
 
         # Newer libraries expect the region key to be `region_name`, not
         # `region`.

@@ -1,0 +1,231 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+imports:
+  - types.yaml
+  - https://raw.githubusercontent.com/EarthmanT/cloudify-openstack-plugin/secret-store-os/plugin.yaml
+
+inputs:
+
+  use_existing_example_openstack_group:
+    type: boolean
+    default: false
+
+  example_openstack_group_name:
+    default: 'example-openstack-group'
+
+  openstack_open_group_rules:
+    default:
+      - remote_ip_prefix: 0.0.0.0/0
+        port_range_min: 1
+        port_range_max: 65535
+        protocol: tcp
+      - remote_ip_prefix: 0.0.0.0/0
+        port_range_min: 1
+        port_range_max: 65535
+        protocol: udp
+      - remote_ip_prefix: 0.0.0.0/0
+        port_range_min: null
+        port_range_max: null
+        protocol: icmp
+
+  use_existing_example_openstack_network_router:
+    type: boolean
+    default: false
+
+  example_openstack_network_router_name:
+    type: string
+    default: 'openstack-example-network-router'
+
+  use_existing_example_openstack_network:
+    type: boolean
+    default: false
+
+  example_openstack_network_name:
+    type: string
+    default: 'openstack-example-network-name'
+
+  use_existing_example_openstack_network_subnet:
+    type: boolean
+    default: false
+
+  example_openstack_network_subnet:
+    type: string
+    default: 'openstack-example-network-subnet'
+
+  example_openstack_network_subnet_ipversion:
+    default: 4
+
+  example_openstack_network_subnet_cidr:
+    type: string
+    default: 192.168.120.0/24
+
+  example_openstack_network_subnet_dnsservers:
+    default: [8.8.4.4, 8.8.8.8]
+
+  example_openstack_network_subnet_allocation_pools:
+    default:
+      - start: 192.168.120.50
+        end: 192.168.120.250
+
+  use_existing_example_openstack_external_network:
+    type: boolean
+    default: true
+
+  example_openstack_external_network_name:
+    type: string
+    default: external
+
+  use_existing_openstack_port:
+    type: boolean
+    default: false
+
+  openstack_port:
+    type: string
+    default: 'haproxy-openstack-port'
+
+  example_openstack_network_port_address_pairs:
+    default: []
+
+  use_existing_example_openstack_key:
+    default: false
+
+  example_openstack_key:
+    default: openstack-key
+
+  example_openstack_key_file:
+    default: ~/.ssh/openstack-key.pem
+
+  use_existing_openstack_virtual_machine:
+    type: boolean
+    default: false
+
+  openstack_virtual_machine:
+    type: string
+    default: ''
+
+  openstack_instances:
+    default: 0
+
+  example_openstack_virtual_machine_image_id:
+    type: string
+
+  example_openstack_virtual_machine_flavor_id:
+    type: string
+
+  openstack_agent_username:
+    default: ubuntu
+
+  openstack_agent_local_path_to_key_file:
+    default: { get_input: example_openstack_key_file }
+
+  openstack_agent_port:
+    default: 22
+
+node_templates:
+
+  openstack_virtual_machine:
+    type: cloudify.openstack.nodes.Server
+    capabilities:
+      scalable:
+        properties:
+          default_instances: { get_input: openstack_instances }
+    properties:
+      openstack_config: { get_input: openstack_configuration }
+      agent_config:
+        install_method: none
+        user: { get_input: openstack_agent_username }
+        key: { get_input: openstack_agent_local_path_to_key_file }
+        port: { get_input: openstack_agent_port }
+      use_external_resource: { get_input: use_existing_openstack_virtual_machine }
+      resource_id: { get_input: openstack_virtual_machine }
+      server:
+        image: { get_input: example_openstack_virtual_machine_image_id }
+        flavor: { get_input: example_openstack_virtual_machine_flavor_id }
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: example_openstack_network
+      - target: example_openstack_key
+        type: cloudify.openstack.server_connected_to_keypair
+      - target: openstack_network_port
+        type: cloudify.openstack.server_connected_to_port
+
+
+  example_openstack_key:
+    type: cloudify.openstack.nodes.KeyPair
+    properties:
+      openstack_config: { get_input: openstack_configuration }
+      use_external_resource: { get_input: use_existing_example_openstack_key }
+      resource_id: { get_input: example_openstack_key }
+      private_key_path: { get_input: example_openstack_key_file }
+
+  openstack_network_port:
+    type: cloudify.openstack.nodes.Port
+    properties:
+      openstack_config: { get_input: openstack_configuration }
+      use_external_resource: { get_input: use_existing_openstack_port }
+      resource_id: { get_input: openstack_port }
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: example_openstack_network
+      - type: cloudify.relationships.depends_on
+        target: example_openstack_network_subnet
+      - type: cloudify.openstack.port_connected_to_security_group
+        target: example_openstack_group
+      - type: cloudify.openstack.port_connected_to_floating_ip
+        target: openstack_ip
+
+  example_openstack_external_network:
+    type: cloudify.openstack.nodes.Network
+    properties:
+      openstack_config: { get_input: openstack_configuration }
+      use_external_resource: { get_input: use_existing_example_openstack_external_network }
+      resource_id: { get_input: example_openstack_external_network_name }
+
+  openstack_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+    properties:
+      openstack_config: { get_input: openstack_configuration }
+      floatingip:
+        floating_network_name: { get_input: example_openstack_external_network_name }
+
+  example_openstack_network_subnet:
+    type: cloudify.openstack.nodes.Subnet
+    properties:
+      openstack_config: { get_input: openstack_configuration }
+      use_external_resource: { get_input: use_existing_example_openstack_network_subnet }
+      resource_id: { get_input: example_openstack_network_subnet }
+      subnet:
+        ip_version: { get_input: example_openstack_network_subnet_ipversion }
+        cidr: { get_input: example_openstack_network_subnet_cidr }
+        dns_nameservers: { get_input: example_openstack_network_subnet_dnsservers }
+        allocation_pools: { get_input: example_openstack_network_subnet_allocation_pools }
+    relationships:
+      - target: example_openstack_network
+        type: cloudify.relationships.contained_in
+      - target: example_openstack_network_router
+        type: cloudify.openstack.subnet_connected_to_router
+
+  example_openstack_network:
+    type: cloudify.openstack.nodes.Network
+    properties:
+      openstack_config: { get_input: openstack_configuration }
+      use_external_resource: { get_input: use_existing_example_openstack_network }
+      resource_id: { get_input: example_openstack_network_name }
+
+  example_openstack_network_router:
+    type: cloudify.openstack.nodes.Router
+    properties:
+      openstack_config: { get_input: openstack_configuration }
+      use_external_resource: { get_input: use_existing_example_openstack_network_router }
+      resource_id: { get_input: example_openstack_network_router_name }
+    relationships:
+      - target: example_openstack_external_network
+        type: cloudify.relationships.connected_to
+
+  example_openstack_group:
+    type: cloudify.openstack.nodes.SecurityGroup
+    properties:
+      openstack_config: { get_input: openstack_configuration }
+      use_external_resource: { get_input: use_existing_example_openstack_group }
+      resource_id: { get_input: example_openstack_group_name }
+      rules: { get_input: openstack_open_group_rules }
