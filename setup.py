@@ -23,8 +23,8 @@ setup(
     author='idanmo',
     author_email='idan@gigaspaces.com',
     packages=[
-        'openstack_plugin_common',
         'cloudify_secrets',
+        'openstack_plugin_common',
         'nova_plugin',
         'neutron_plugin',
         'cinder_plugin',
@@ -34,6 +34,7 @@ setup(
     license='LICENSE',
     description='Cloudify plugin for OpenStack infrastructure.',
     install_requires=[
+        'ghost',
         'cloudify-plugins-common>=3.3.1',
         'keystoneauth1>=2.16.0,<3',
         'python-novaclient==7.0.0',
