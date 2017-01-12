@@ -172,15 +172,16 @@ class CloudifySecrets():
         if stash and secret_config_schema:
             try:
                 secret_key_name = secret_config_schema.pop('key_name')
-            except KeyError:
+            except KeyError as e:
                 ctx.logger.warn(
                     'The secret_schema {0} is not properly formatted.'
-                    'The reserved key {1} is not provided.'
+                    'The reserved key_name is not provided.'
                     'The proper format is:'
                     '{{ CONFIG_SCHEMA_NAME: '
                     '{{ key_name: SECRET_KEY_NAME, secret_names: '
                     '{{ secret_1: '', secret_2: '' }} }} }}'
-                    .format(config_schema_name, secret_key_name)
+                    '{1}'
+                    .format(config_schema_name, str(e))
                 )
 
             secret_schema = secret_config_schema.get('secret_names')
