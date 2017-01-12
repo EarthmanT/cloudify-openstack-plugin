@@ -27,9 +27,9 @@ node_types:
               database_uri: ~/.ghost/stash.json
               storage_mapping: tinydb
               secret_names:
-                keystone_username: ''
-                keystone_password: ''
-                keystone_tenant_name: ''
+                username: ''
+                password: ''
+                tenant_name: ''
             aws_config:
               key_name: aws
               database_uri: ~/.ghost/stash.json
