@@ -178,7 +178,7 @@ class CloudifySecrets():
         :return:
         '''
 
-        ctx.logger.info('CONFIG: {0}'.format(config))
+        ctx.logger.info('CONFIG {0}'.format(config))
 
         secret_config_schema = \
             self.controller_config.get(
@@ -204,6 +204,7 @@ class CloudifySecrets():
             stash = None
 
         if stash and secret_config_schema:
+            ctx.logger.info('secret_config_schema: {0}'.format(secret_config_schema))
             try:
                 secret_key_name = secret_config_schema.pop('key_name')
             except KeyError:
@@ -220,5 +221,7 @@ class CloudifySecrets():
                                              secret_name=secret_name,
                                              stash=stash)
                     config.update({secret_name: secret})
+
+        ctx.logger.info('CONFIG {0}'.format(config))
 
         return config
