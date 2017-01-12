@@ -44,28 +44,6 @@ inputs:
       nova_url: { get_input: nova_url }
       neutron_url: { get_input: neutron_url }
 
-  use_existing_example_openstack_group:
-    type: boolean
-    default: false
-
-  example_openstack_group_name:
-    default: 'example-openstack-group'
-
-  openstack_open_group_rules:
-    default:
-      - remote_ip_prefix: 0.0.0.0/0
-        port_range_min: 1
-        port_range_max: 65535
-        protocol: tcp
-      - remote_ip_prefix: 0.0.0.0/0
-        port_range_min: 1
-        port_range_max: 65535
-        protocol: udp
-      - remote_ip_prefix: 0.0.0.0/0
-        port_range_min: null
-        port_range_max: null
-        protocol: icmp
-
   use_existing_example_openstack_network_router:
     type: boolean
     default: false
@@ -113,14 +91,6 @@ inputs:
     type: string
     default: external
 
-  use_existing_openstack_port:
-    type: boolean
-    default: false
-
-  openstack_port:
-    type: string
-    default: 'haproxy-openstack-port'
-
   use_existing_example_openstack_key:
     default: false
 
@@ -139,7 +109,7 @@ inputs:
     default: ''
 
   openstack_instances:
-    default: 0
+    default: 1
 
   example_openstack_virtual_machine_image_id:
     type: string
@@ -172,13 +142,6 @@ node_templates:
       openstack_config: { get_input: openstack_configuration }
       use_external_resource: { get_input: use_existing_example_openstack_external_network }
       resource_id: { get_input: example_openstack_external_network_name }
-
-  openstack_ip:
-    type: cloudify.openstack.nodes.FloatingIP
-    properties:
-      openstack_config: { get_input: openstack_configuration }
-      floatingip:
-        floating_network_name: { get_input: example_openstack_external_network_name }
 
   example_openstack_network:
     type: cloudify.openstack.nodes.Network
@@ -214,30 +177,6 @@ node_templates:
       - target: example_openstack_network_router
         type: cloudify.openstack.subnet_connected_to_router
 
-  openstack_network_port:
-    type: cloudify.openstack.nodes.Port
-    properties:
-      openstack_config: { get_input: openstack_configuration }
-      use_external_resource: { get_input: use_existing_openstack_port }
-      resource_id: { get_input: openstack_port }
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: example_openstack_network
-      - type: cloudify.relationships.depends_on
-        target: example_openstack_network_subnet
-      - type: cloudify.openstack.port_connected_to_security_group
-        target: example_openstack_group
-      - type: cloudify.openstack.port_connected_to_floating_ip
-        target: openstack_ip
-
-  example_openstack_group:
-    type: cloudify.openstack.nodes.SecurityGroup
-    properties:
-      openstack_config: { get_input: openstack_configuration }
-      use_external_resource: { get_input: use_existing_example_openstack_group }
-      resource_id: { get_input: example_openstack_group_name }
-      rules: { get_input: openstack_open_group_rules }
-
   openstack_virtual_machine:
     type: cloudify.openstack.nodes.Server
     capabilities:
@@ -256,10 +195,9 @@ node_templates:
       server:
         image: { get_input: example_openstack_virtual_machine_image_id }
         flavor: { get_input: example_openstack_virtual_machine_flavor_id }
+      management_network_name: openstack-example-network-name
     relationships:
       - type: cloudify.relationships.contained_in
         target: example_openstack_network
       - target: example_openstack_key
         type: cloudify.openstack.server_connected_to_keypair
-      - target: openstack_network_port
-        type: cloudify.openstack.server_connected_to_port
