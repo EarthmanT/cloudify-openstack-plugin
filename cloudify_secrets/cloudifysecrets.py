@@ -29,7 +29,38 @@ POTENTIAL_PASSPHRASE_LOCATIONS = [
 ]
 DEFAULT_STORAGE_MAPPING = 'tinydb'
 CONTR_CFG = 'controller_config'
-
+DEFAULT_SECRET_SCHEMAS = {
+    'openstack_config': {
+        'key_name': 'openstack',
+        'database_uri': '~/.ghost/stash.json',
+        'storage_mapping': 'tinydb',
+        'secret_names': {
+            'username': '',
+            'password': '',
+            'tenant_name': ''
+        }
+    },
+    'aws_config': {
+        'key_name': 'aws',
+        'database_uri': '~/.ghost/stash.json',
+        'storage_mapping': 'tinydb',
+        'secret_names': {
+            'aws_access_key_id': '',
+            'aws_secret_access_key': ''
+        }
+    },
+    'azure_config': {
+        'key_name': 'azure',
+        'database_uri': '~/.ghost/stash.json',
+        'storage_mapping': 'tinydb',
+        'secret_names': {
+            'subscription_id': '',
+            'tenant_id': '',
+            'client_id': '',
+            'client_secret': ''
+        }
+    }
+}
 
 class CloudifySecrets():
 
@@ -150,8 +181,9 @@ class CloudifySecrets():
         ctx.logger.info('CONFIG: {0}'.format(config))
 
         secret_config_schema = \
-            self.controller_config.get('secret_schemas',
-                                       {}).get(config_schema_name, {})
+            self.controller_config.get(
+                'secret_schemas', DEFAULT_SECRET_SCHEMAS).get(
+                config_schema_name, {})
 
         storage_mapping = secret_config_schema.get('storage_mapping',
                                                    DEFAULT_STORAGE_MAPPING)
