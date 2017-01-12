@@ -147,6 +147,8 @@ class CloudifySecrets():
         :return:
         '''
 
+        ctx.logger.info('CONFIG: {0}'.format(config))
+
         secret_config_schema = \
             self.controller_config.get('secret_schemas',
                                        {}).get(config_schema_name, {})
@@ -172,16 +174,11 @@ class CloudifySecrets():
         if stash and secret_config_schema:
             try:
                 secret_key_name = secret_config_schema.pop('key_name')
-            except KeyError as e:
-                ctx.logger.warn(
-                    'The secret_schema {0} is not properly formatted.'
-                    'The reserved key_name is not provided.'
-                    'The proper format is:'
-                    '{{ CONFIG_SCHEMA_NAME: '
-                    '{{ key_name: SECRET_KEY_NAME, secret_names: '
-                    '{{ secret_1: '', secret_2: '' }} }} }}'
-                    '{1}'
-                    .format(config_schema_name, str(e))
+            except KeyError:
+                raise NonRecoverableError(
+                    'The secret_schema {0} is not properly formatted. '
+                    'No key_name is provided.'
+                    .format(config_schema_name)
                 )
 
             secret_schema = secret_config_schema.get('secret_names')
