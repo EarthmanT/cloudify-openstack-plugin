@@ -433,20 +433,23 @@ class OpenStackClient(object):
     ]
     OPTIONAL_AUTH_PARAMS = {'insecure'}
 
-    def __init__(self, client_name, client_class, config=None, secure_client_config=None, *args, **kw):
+    def __init__(self, client_name, client_class, config=None, *args, **kw):
         self.secrets = \
-            secure_client_config or CloudifySecrets()
-        cfg = Config.get()
-        v3 = '/v3' in config['auth_url']
+            kw['secure_client_config'] \
+                if 'secure_client_config' in kw else CloudifySecrets()
 
-        if config:
-            Config.update_config(cfg, config)
+        cfg = Config.get()
 
         if self.secrets.use:
             cfg = \
                 self.secrets.update_config_with_secrets(
                     config=cfg,
                     config_schema_name='openstack_config')
+
+        v3 = '/v3' in config['auth_url']
+
+        if config:
+            Config.update_config(cfg, config)
 
         # Newer libraries expect the region key to be `region_name`, not
         # `region`.
