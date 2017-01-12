@@ -14,6 +14,7 @@
 #    * limitations under the License.
 
 import os
+import copy
 import ghost
 from cryptography.fernet import InvalidToken
 
@@ -180,10 +181,10 @@ class CloudifySecrets():
 
         ctx.logger.info('CONFIG {0}'.format(config))
 
-        secret_config_schema = \
+        secret_config_schema = copy.deepcopy(
             self.controller_config.get(
                 'secret_schemas', DEFAULT_SECRET_SCHEMAS).get(
-                config_schema_name, {})
+                config_schema_name, {}))
 
         storage_mapping = secret_config_schema.get('storage_mapping',
                                                    DEFAULT_STORAGE_MAPPING)
