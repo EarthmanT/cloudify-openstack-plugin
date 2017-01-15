@@ -4,6 +4,26 @@
 ##################################################################################
 tosca_definitions_version: cloudify_dsl_1_3
 
+inputs:
+
+  cloudify_secret_store_use:
+    default: true
+
+  cloudify_secret_store_database_uri:
+    default: ~/.ghost/stash.json
+
+  cloudify_secret_store_storage_mapping:
+    default: tinydb
+
+  cloudify_secret_store_key_name_openstack:
+    default: openstack
+
+  cloudify_secret_store_key_name_aws:
+    default: aws
+
+  cloudify_secret_store_key_name_azure:
+    default: azure
+
 ##################################################################################
 # Base type definitions
 ##################################################################################
@@ -14,33 +34,31 @@ node_types:
     properties:
       controller_queue:
         default: ''
-      use_secret_store:
-        default: false
       controller_config:
         type: cloudify.datatypes.ControllerConfig
         default:
           controller_queue: { get_property: [ SELF, controller_queue ] }
-          use_secret_store: { get_property: [ SELF, use_secret_store ] }
+          use_secret_store: { get_input: cloudify_secret_store_use }
           secret_schemas:
             openstack_config:
-              key_name: openstack
-              database_uri: ~/.ghost/stash.json
-              storage_mapping: tinydb
+              key_name: { get_input: cloudify_secret_store_key_name_openstack }
+              database_uri: { get_input: cloudify_secret_store_database_uri }
+              storage_mapping: { get_input: cloudify_secret_store_storage_mapping }
               secret_names:
-                username: ''
-                password: ''
-                tenant_name: ''
+                keystone_username: ''
+                keystone_password: ''
+                keystone_tenant_name: ''
             aws_config:
-              key_name: aws
-              database_uri: ~/.ghost/stash.json
-              storage_mapping: tinydb
+              key_name: { get_input: cloudify_secret_store_key_name_aws }
+              database_uri: { get_input: cloudify_secret_store_database_uri }
+              storage_mapping: { get_input: cloudify_secret_store_storage_mapping }
               secret_names:
                 aws_access_key_id: ''
                 aws_secret_access_key: ''
             azure_config:
-              key_name: azure
-              database_uri: ~/.ghost/stash.json
-              storage_mapping: tinydb
+              key_name: { get_input: cloudify_secret_store_key_name_azure }
+              database_uri: { get_input: cloudify_secret_store_database_uri }
+              storage_mapping: { get_input: cloudify_secret_store_storage_mapping }
               secret_names:
                 subscription_id: ''
                 tenant_id: ''
