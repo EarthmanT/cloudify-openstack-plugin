@@ -434,9 +434,10 @@ class OpenStackClient(object):
     OPTIONAL_AUTH_PARAMS = {'insecure'}
 
     def __init__(self, client_name, client_class, config=None, *args, **kw):
-        self.secrets = \
+        self.secrets = CloudifySecretStore() if \
             kw['secure_client_config'] \
-                if 'secure_client_config' in kw else CloudifySecretStore()
+            not in 'secure_client_config' in kw \
+            else kw['secure_client_config']
 
         cfg = Config.get()
 
