@@ -34,8 +34,8 @@ import glanceclient.exc as glance_exceptions
 import cloudify
 from cloudify import context
 from cloudify.exceptions import NonRecoverableError, RecoverableError
-from cloudify_secrets.cloudifysecrets import \
-    CloudifySecrets
+from cloudify_secrets import \
+    CloudifySecretStore
 
 INFINITE_RESOURCE_QUOTA = -1
 
@@ -436,7 +436,7 @@ class OpenStackClient(object):
     def __init__(self, client_name, client_class, config=None, *args, **kw):
         self.secrets = \
             kw['secure_client_config'] \
-                if 'secure_client_config' in kw else CloudifySecrets()
+                if 'secure_client_config' in kw else CloudifySecretStore()
 
         cfg = Config.get()
 
