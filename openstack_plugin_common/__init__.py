@@ -435,8 +435,7 @@ class OpenStackClient(object):
 
     def __init__(self, client_name, client_class, config=None, *args, **kw):
         self.secrets = CloudifySecretStore() if \
-            kw['secure_client_config'] \
-            not in 'secure_client_config' in kw \
+            'secure_client_config' not in kw.keys() \
             else kw['secure_client_config']
 
         cfg = Config.get()
