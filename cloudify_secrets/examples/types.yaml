@@ -45,9 +45,9 @@ node_types:
               database_uri: { get_input: cloudify_secret_store_database_uri }
               storage_mapping: { get_input: cloudify_secret_store_storage_mapping }
               secret_names:
-                keystone_username: ''
-                keystone_password: ''
-                keystone_tenant_name: ''
+                username: ''
+                password: ''
+                tenant_name: ''
             aws_config:
               key_name: { get_input: cloudify_secret_store_key_name_aws }
               database_uri: { get_input: cloudify_secret_store_database_uri }
@@ -795,4 +795,3 @@ policy_triggers:
         description: Connection timeout when making request to manager REST in ms
         default: 1000
     source: https://raw.githubusercontent.com/cloudify-cosmo/cloudify-manager/3.4/resources/rest-service/cloudify/triggers/execute_workflow.clj
-
